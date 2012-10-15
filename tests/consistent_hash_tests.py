@@ -4,14 +4,13 @@ from consistent_hash.consistent_hash import ConsistentHash
 
 class TestConsistentHash:
     node_nums = 6
-    replicas = 500 
     obj_nums = 10000
     obj_len = 10
     @classmethod
     def setup_class(cls):
         cls.nodes = cls.make_random_ips(cls.node_nums)
         cls.objs = cls.make_random_objs(cls.obj_nums, cls.obj_len)
-        cls.con_hash = ConsistentHash(cls.replicas)        
+        cls.con_hash = ConsistentHash(cls.nodes)        
 
     @classmethod
     def teardown_class(cls):
@@ -63,10 +62,11 @@ class TestConsistentHash:
          
     @classmethod
     def make_random_ips(cls, num):
-        nodes = []
-        for i in range(num):
-            nodes.append('.'.join([str(randint(1,255)) for i in range(4)]))
-        return nodes 
+        #nodes = []
+        #for i in range(num):
+        #    nodes.append('.'.join([str(randint(1,255)) for i in range(4)]))
+        #return nodes 
+        return {'192.168.0.101':1, '192.168.0.102:11212': 1, '192.168.0.103:11212': 2, '192.168.0.104:11212': 1}
 
     @classmethod
     def make_random_objs(cls, num, len):
