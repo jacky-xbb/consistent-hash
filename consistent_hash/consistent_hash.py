@@ -7,7 +7,7 @@ import sys
 
 class ConsistentHash():
     def __init__(self, objects=None):
-        """`objects`, t, when you are running a cluster of Memcached servers
+        """`objects`, when you are running a cluster of Memcached servers
         it could happen to not all server can allocate the same amount of memory. 
         You might have a Memcached server with 128mb, 512, 128mb. If you would the 
         array structure all servers would have the same weight in the consistent 
@@ -17,7 +17,7 @@ class ConsistentHash():
         the server location syntax and the value the weight of the server. 
 
         By default all servers have a weight of 1.
-        { '192.168.0.102:11212': 1, '192.168.0.103:11212': 2, '192.168.0.104:11212': 1 } 
+        { '192.168.0.101:11212': 1, '192.168.0.102:11212': 2, '192.168.0.103:11212': 1 } 
         would generate a 25/50/25 distribution of the keys.
         """
         self.keys = []
