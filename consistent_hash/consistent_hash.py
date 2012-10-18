@@ -1,5 +1,9 @@
+import traceback
 import hashlib
 import bisect
+import math
+import re
+import sys
 
 class ConsistentHash():
     def __init__(self, objects=None):
@@ -12,7 +16,8 @@ class ConsistentHash():
         get stored on that server. When you are using a object, the key should represent 
         the server location syntax and the value the weight of the server. 
 
-        By default all servers have a weight of 1. { '192.168.0.102:11212': 1, '192.168.0.103:11212': 2, '192.168.0.104:11212': 1 } 
+        By default all servers have a weight of 1.
+        { '192.168.0.102:11212': 1, '192.168.0.103:11212': 2, '192.168.0.104:11212': 1 } 
         would generate a 25/50/25 distribution of the keys.
         """
         self.keys = []
@@ -27,20 +32,19 @@ class ConsistentHash():
         try:
             if isinstance(objects, dict):
                 self.nodes.extend(objects.keys())
-                self.weights.update(self.objects.copy())
+                self.weights.update(objects.copy())
             elif isinstance(objects, list):
                 self.nodes.extend(objects[:])
             elif isinstance(objects, str):
                 self.nodes.extend(objects)
             else:
-                raise TypeError("The arguments of nodes must be "
-                                "dict, list or string.") 
+                raise TypeError("The arguments of nodes must be dict, list or string.") 
         except TypeError as error:
-            print error
+            traceback.print_exc(file=sys.stdout)
 
-    def _generate_ring(self):
-        """Generates the ring.
-        """
+    def add_nodes(self, objects):
+        self._check_parameters(objects)
+        # Generates the ring.
         for node in self.nodes[self.index:]:
             self.total_weight += self.weights.get(node, 1)
 
@@ -48,7 +52,7 @@ class ConsistentHash():
             weight = 1
             if node in self.weights:
                 weight = self.weights.get(node)
-            factor = math.floor((40*len(self.nodes)*weight) / self.total_weight);
+            factor = 40 * weight
             for j in xrange(0, int(factor)):
                 b_key = self._hash_digest('%s-%s' % (node, j))
                 for i in xrange(0, 3):
@@ -56,33 +60,28 @@ class ConsistentHash():
                     self.key_node[key] = node
                     self.keys.append(key)
 
-        self.index = len(self.nodes)
+        self.index = self.get_nodes_cnt()
         self.keys.sort()
 
-    def add_nodes(self, objects):
-        self._check_parameters(objects)
-        self._generate_ring()        
-
     def del_nodes(self, nodes):
-        if isinstance(nodes, str):
-            obj = nodes
-            nodes = []
-            nodes.append(obj)
-            
-        for node in nodes:
-            self.total_weight -= self.weights.get(node, 0)
-        
+        try:
+            if not isinstance(nodes, list):
+                raise TypeError("The arguments of nodes must be list.") 
+        except TypeError as error:
+            traceback.print_exc(file=sys.stdout)
+        # Delete nodes from the ring. 
         for node in nodes:
             weight = 1
             if node in self.weights:
                 weight = self.weights.get(node)
-            factor = math.floor((40*len(self.nodes)*weight) / self.total_weight);
+            factor = 40 * weight
             for j in xrange(0, int(factor)):
                 b_key = self._hash_digest('%s-%s' % (node, j))
                 for i in xrange(0, 3):
                     key = self._hash_val(b_key, lambda x: x+i*4)
                     self.keys.remove(key)
                     del self.key_node[key]
+            self.index -= 1
             self.nodes.remove(node)
 
     def get_node(self, string_key):
@@ -101,11 +100,11 @@ class ConsistentHash():
 
         If the hash ring is empty, (`None`, `None`) is returned.
         """
-        if not self.ring:
+        if not self.key_node:
             return None
         key = self.gen_key(string_key)
         nodes = self.keys
-        pos = bisect(nodes, key)
+        pos = bisect.bisect(nodes, key)
         if pos == len(nodes):
             return 0
         else:
@@ -113,12 +112,7 @@ class ConsistentHash():
  
     def get_all_nodes(self):
         # Sorted with ascend
-        return sorted(self.nodes, key=lambda node:map(int, node.split('.')))
-    
-    def get_all_vnodes(self):
-        # Sorted with clockwise
-        return map(lambda node:node[1],
-                sorted(self.key_node.items(), key=lambda x:x[0]))
+        return sorted(self.nodes, key=lambda node:map(int, re.split('\W', node)))
     
     def get_nodes_cnt(self):
         return len(self.nodes)
