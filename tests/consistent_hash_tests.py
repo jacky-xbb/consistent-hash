@@ -3,6 +3,8 @@ import random
 from nose.tools import *
 from consistent_hash.consistent_hash import ConsistentHash
 
+ConsistentHash.interleave_count = 1000
+
 class TestConsistentHash:
     init_nodes = {'192.168.0.101:11212':1,
                   '192.168.0.102:11212':1,
@@ -30,7 +32,14 @@ class TestConsistentHash:
         for obj in self.objs:
             node = self.con_hash.get_node(obj)
             self.hit_nums[node] = self.hit_nums.get(node, 0) + 1
-        self.show_nodes_balance()
+        distribution = self.show_nodes_balance()
+
+        self.validate_distribution(distribution, {
+            '192.168.0.101:11212':(23, 27),
+            '192.168.0.102:11212':(23, 27),
+            '192.168.0.103:11212':(23, 27),
+            '192.168.0.104:11212':(23, 27)
+        })
 
     def test_empty__init__(self):
         self.con_hash = ConsistentHash()
@@ -46,6 +55,15 @@ class TestConsistentHash:
             node = self.con_hash.get_node(obj)
             self.hit_nums[node] = self.hit_nums.get(node, 0) + 1
 
+        distribution = self.show_nodes_balance()
+
+        self.validate_distribution(distribution, {
+            '192.168.0.101:11212':(23, 27),
+            '192.168.0.102:11212':(23, 27),
+            '192.168.0.103:11212':(23, 27),
+            '192.168.0.104:11212':(23, 27)
+        })
+
     def test_add_nodes(self):
         self.con_hash = ConsistentHash(self.init_nodes)
         # Add nodes to hashing ring
@@ -55,7 +73,15 @@ class TestConsistentHash:
         for obj in self.objs:
             node = self.con_hash.get_node(obj)
             self.hit_nums[node] = self.hit_nums.get(node, 0) + 1
-        self.show_nodes_balance()
+        distribution = self.show_nodes_balance()
+
+        self.validate_distribution(distribution, {
+            '192.168.0.105:11212': (17, 23),
+            '192.168.0.102:11212': (17, 23),
+            '192.168.0.104:11212': (17, 23),
+            '192.168.0.101:11212': (17, 23),
+            '192.168.0.103:11212': (17, 23)
+        })
         print '->The {nodes} added!!!'.format(nodes=add_nodes)
 
     def test_del_nodes(self):
@@ -68,25 +94,54 @@ class TestConsistentHash:
         for obj in self.objs:
             node = self.con_hash.get_node(obj)
             self.hit_nums[node] = self.hit_nums.get(node, 0) + 1
-        self.show_nodes_balance()
+        distribution = self.show_nodes_balance()
+
+        self.validate_distribution(distribution, {
+            '192.168.0.101:11212': (48, 52),
+            '192.168.0.103:11212': (48, 52)
+        })
         print '->The {nodes} deleted!!!'.format(nodes=del_nodes)
 
     # -------------Help functions-------------
     def show_nodes_balance(self):
+        distribution = {}
         print '-'*67
         print 'Nodes count:{nNodes} Objects count:{nObjs}'.format(
                 nNodes = self.con_hash.get_nodes_cnt(),
-                nObjs = len(self.objs),
-                per = self.get_percent(1, self.con_hash.get_nodes_cnt()))
+                nObjs = len(self.objs)
+            )
         print '-'*27 + 'Nodes balance' + '-'*27
         for node in self.con_hash.get_all_nodes():
-            print 'Nodes:{nNodes} - Objects count:{nObjs} - percent:{per}'.format(
-                    nNodes = node,
-                    nObjs = self.hit_nums[node],
-                    per = self.get_percent(self.hit_nums[node], self.obj_nums))
+            substitutions = {
+                'nNodes': node,
+                'nObjs': self.hit_nums[node],
+                'percentage': self.get_percent(self.hit_nums[node], self.obj_nums)
+            }
+
+            print 'Nodes:{nNodes} - Objects count:{nObjs} - percent:{percentage}%'.format(**substitutions)
+
+            distribution[node] = substitutions['percentage']
+
+        return distribution
+
+
+    def validate_distribution(self, actual, expected):
+        if expected.keys() != actual.keys():
+            raise Exception("Expected nodes does not match actual nodes")
+
+        for i in expected.keys():
+            actual_value = actual[i]
+            min_value = expected[i][0]
+            max_value = expected[i][1]
+
+            if actual_value < min_value or actual_value > max_value:
+                print min_value, actual_value, max_value
+                raise Exception("Value outside of expected range")
+
+        print "Validated ranges"
 
     def get_percent(self, num, sum):
-        return "{0:.0f}%".format(float(num) / sum * 100)
+        return int(float(num) / sum * 100)
 
     @classmethod
     def gen_random_objs(cls, num=10000, len=10):
