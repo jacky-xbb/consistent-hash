@@ -16,6 +16,7 @@ import sys
 class ConsistentHash(object):
 
     interleave_count = 40
+    hasher = None
 
     def __init__(self, objects=None):
         """`objects`, when you are running a cluster of Memcached servers
@@ -172,9 +173,14 @@ class ConsistentHash(object):
                 | b_key[entry_fn(0)] )
 
     def _hash_digest(self, key):
-        m = hashlib.md5()
-        m.update(key)
-        return map(ord, m.digest())
+        if self.hasher != None:
+            res = map(ord, self.hasher(key))
+        else:
+            m = hashlib.md5()
+            m.update(key)
+            res = map(ord, m.digest())
+
+        return res
 
 
 class RangeHash(ConsistentHash):
