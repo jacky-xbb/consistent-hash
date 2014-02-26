@@ -1,7 +1,7 @@
 consistent-hash
 ===============
 
-Implements consistent hashing that can be used when the number of server nodes can increase or decrease.The algorithm that is used for consistent hashing is the same as [libketama](https://github.com/RJ/ketama"libketama").
+Implements consistent hashing that can be used when the number of server nodes can increase or decrease.The algorithm that is used for consistent hashing is the same as [libketama](https://github.com/RJ/ketama).
 
 Install:
 ===============
