@@ -13,7 +13,11 @@ import math
 import re
 import sys
 
-class ConsistentHash():
+class ConsistentHash(object):
+
+    interleave_count = 40
+    hasher = None
+
     def __init__(self, objects=None):
         """`objects`, when you are running a cluster of Memcached servers
         it could happen to not all server can allocate the same amount of memory. 
@@ -34,9 +38,10 @@ class ConsistentHash():
         self.index = 0
         self.weights = {} 
         self.total_weight = 0
+
         self.add_nodes(objects)
 
-    def _check_parameters(self, objects):
+    def _ingest_objects(self, objects):
         try:
             if isinstance(objects, dict):
                 self.nodes.extend(objects.keys())
@@ -45,52 +50,76 @@ class ConsistentHash():
                 self.nodes.extend(objects[:])
             elif isinstance(objects, str):
                 self.nodes.extend(objects)
+            elif objects == None:
+                pass
             else:
                 raise TypeError("The arguments of nodes must be dict, list or string.") 
         except TypeError as error:
             traceback.print_exc(file=sys.stdout)
 
-    def add_nodes(self, objects):
-        self._check_parameters(objects)
-        # Generates the ring.
-        for node in self.nodes[self.index:]:
-            self.total_weight += self.weights.get(node, 1)
+    def add_nodes(self, nodes):
+        """
+        Adds nodes to the ring.  
 
-        for node in self.nodes[self.index:]:
-            weight = 1
-            if node in self.weights:
-                weight = self.weights.get(node)
-            factor = 40 * weight
-            for j in xrange(0, int(factor)):
-                b_key = self._hash_digest('%s-%s' % (node, j))
-                for i in xrange(0, 3):
-                    key = self._hash_val(b_key, lambda x: x+i*4)
-                    self.key_node[key] = node
-                    self.keys.append(key)
+        Nodes can be a list of nodes (assumed to be of weight 1), a dictionary keyed
+        by node name and valued by weight, or a string specifying a single node of
+        weight 1.
+        """
+        self._ingest_objects(nodes)
+
+        self._generate_ring(start=self.index)
 
         self.index = self.get_nodes_cnt()
         self.keys.sort()
 
+    def _generate_ring(self, start=0, remove=[]):
+        # Generates the ring.
+        for node in self.nodes[start:]:
+            for key in self._node_keys(node):
+                self.key_node[key] = node
+                self.keys.append(key)
+
     def del_nodes(self, nodes):
+        """
+        Deletes nodes from the ring.
+
+        Nodes is expected to be a list of nodes already present in the ring.
+        """
         try:
             if not isinstance(nodes, list):
                 raise TypeError("The arguments of nodes must be list.") 
         except TypeError as error:
             traceback.print_exc(file=sys.stdout)
-        # Delete nodes from the ring. 
+
+        # Delete nodes from the ring.
         for node in nodes:
-            weight = 1
-            if node in self.weights:
-                weight = self.weights.get(node)
-            factor = 40 * weight
-            for j in xrange(0, int(factor)):
-                b_key = self._hash_digest('%s-%s' % (node, j))
-                for i in xrange(0, 3):
-                    key = self._hash_val(b_key, lambda x: x+i*4)
-                    self.keys.remove(key)
-                    del self.key_node[key]
+            if not node in self.nodes:
+                continue
+
+            for key in self._node_keys(node):
+                self.keys.remove(key)
+                del self.key_node[key]
+
             self.index -= 1
             self.nodes.remove(node)
+
+    def _node_keys(self, node):
+        """
+        Generates the keys specific to a given node.
+        """
+        keys = []
+
+        if node in self.weights:
+            weight = self.weights.get(node)
+        else:
+            weight = 1
+
+        factor = self.interleave_count * weight
+
+        for j in xrange(0, int(factor)):
+            b_key = self._hash_digest('%s-%s' % (node, j))
+            for i in xrange(0, 3):
+                yield self._hash_val(b_key, lambda x: x+i*4)
 
     def get_node(self, string_key):
         """Given a string key a corresponding node in the hash ring is returned.
@@ -144,7 +173,12 @@ class ConsistentHash():
                 | b_key[entry_fn(0)] )
 
     def _hash_digest(self, key):
-        m = hashlib.md5()
-        m.update(key)
-        return map(ord, m.digest())
+        if self.hasher != None:
+            res = map(ord, self.hasher(key))
+        else:
+            m = hashlib.md5()
+            m.update(key)
+            res = map(ord, m.digest())
+
+        return res
 
