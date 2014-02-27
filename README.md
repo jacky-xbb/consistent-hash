@@ -42,4 +42,4 @@ Unit test:
         nosetests -s -v
 
 
-More information about [nose](https://nose.readthedocs.org/en/latest/"nose").
+More information about [nose](https://nose.readthedocs.org/en/latest/).
