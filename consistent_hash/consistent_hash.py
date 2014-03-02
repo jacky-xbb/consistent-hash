@@ -21,7 +21,7 @@ class ConsistentHash(object):
     def __init__(self, objects=None):
         """`objects`, when you are running a cluster of Memcached servers
         it could happen to not all server can allocate the same amount of memory. 
-        You might have a Memcached server with 128mb, 512, 128mb. If you would the 
+        You might have a Memcached server with 128mb, 512mb, 128mb. If you would the 
         array structure all servers would have the same weight in the consistent 
         hashing scheme. Spreading the keys 33/33/33 over the servers. But as server 
         2 has more memory available you might want to give it more weight so more keys
@@ -72,7 +72,7 @@ class ConsistentHash(object):
         self.index = self.get_nodes_cnt()
         self.keys.sort()
 
-    def _generate_ring(self, start=0, remove=[]):
+    def _generate_ring(self, start=0):
         # Generates the ring.
         for node in self.nodes[start:]:
             for key in self._node_keys(node):
