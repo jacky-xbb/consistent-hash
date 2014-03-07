@@ -1,10 +1,5 @@
 #!/usr/bin/env python
-# Copyright (c) 2012 Yummy Bian <yummy.bian#gmail.com>. 
-#
-# This module is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or (at
-# your option) any later version.
+# Copyright (c) 2012 Yummy Bian <yummy.bian#gmail.com>.
 
 import os
 
@@ -23,7 +18,7 @@ def list_files(path):
 
 setup(
     name = 'consistent_hash',
-    version='0.2',
+    version='0.3',
     author="Yummy Bian",
     author_email="yummy.bian@gmail.com",
     url="https://github.com/yummybian",
@@ -31,7 +26,7 @@ setup(
     platforms=["Any"],
     license="BSD",
     keywords='consistent hash hashing',
-    description="Implements consistent hashing with Python (using md5 as hashing function).",
+    description="Implements consistent hashing with Python.",
 )
 
 

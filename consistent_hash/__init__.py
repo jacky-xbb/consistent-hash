@@ -1,1 +1,0 @@
-from consistent_hash import ConsistentHash
