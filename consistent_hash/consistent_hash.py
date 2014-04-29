@@ -182,3 +182,62 @@ class ConsistentHash(object):
 
         return res
 
+
+class RangeHash(ConsistentHash):
+    """
+    Extends ConsistentHash such that weights are specified as ranges rather than
+    integer values.  Super convenient in the situation that you need to manually
+    subdivide hot segments of a cluster.
+
+    Restricts the ConsistentHash subclass such that add_nodes expects
+    """
+
+    def add_nodes(self, nodes):
+        """
+        Adds nodes to the ring.  
+
+        Nodes should be a dictionary of value to a tuple of (start_value, end_value)
+        """
+
+        ConsistentHash.add_nodes(self, nodes)
+
+    def _ingest_objects(self, objects):
+        if isinstance(objects, dict):
+            self.nodes.extend(objects.keys())
+            self.weights.update(objects.copy())
+        elif objects == None:
+            pass
+        else:
+            raise TypeError("The arguments of nodes must be dict, list or string.") 
+
+    def _node_keys(self, node):
+        """
+        Generates the keys specific to a given node.
+
+        Differs from the parent in that it both leaves the node name out of the hash,
+        and uses a range to generate the hash, rather than a weight
+        """
+        keys = []
+
+        key_range = self.weights.get(node)
+
+        range_start = key_range[0] * self.interleave_count
+        range_end = key_range[1] * self.interleave_count
+
+        for j in xrange(range_start, range_end):
+            b_key = self._hash_digest(str(j))
+            for i in xrange(0, 3):
+                yield self._hash_val(b_key, lambda x: x+i*4)
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
