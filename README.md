@@ -16,7 +16,7 @@ It's so easy to use^_^
     # You can construct consistent hash with the below three ways
     con_hash = ConsistentHash({'192.168.0.101:11212':1, '192.168.0.102:11212':2, '192.168.0.103:11212':1})
     # Or
-    con_hash = ConsistentHash(['192.168.0.101:11212', '192.168.0.102:11212', '192.168.0.103:11212']))
+    con_hash = ConsistentHash(['192.168.0.101:11212', '192.168.0.102:11212', '192.168.0.103:11212'])
     # Or
     con_hash = ConsistentHash('192.168.0.101:11212')
     
