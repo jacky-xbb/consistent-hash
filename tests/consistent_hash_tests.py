@@ -1,6 +1,13 @@
 from __future__ import print_function
 
 import string
+import sys
+
+if sys.version_info[0] == 3:
+    chars = string.ascii_letters + string.digits
+else:
+    chars = string.letters + string.digits
+
 import random
 
 from consistent_hash.consistent_hash import ConsistentHash
@@ -152,6 +159,5 @@ class TestConsistentHash:
     def gen_random_objs(cls, num=10000, len=10):
         objs = []
         for i in range(num):
-            chars = string.letters + string.digits
             objs.append(''.join([random.choice(chars) for i in range(len)]))
         return objs

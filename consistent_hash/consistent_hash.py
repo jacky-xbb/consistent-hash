@@ -150,7 +150,7 @@ class ConsistentHash(object):
 
     def get_all_nodes(self):
         # Sorted with ascend
-        return sorted(self.nodes, key=lambda node: map(int, re.split('\W', node)))
+        return sorted(self.nodes, key=lambda node: list(map(int, re.split('\W', node))))
 
     def get_nodes_cnt(self):
         return len(self.nodes)
@@ -174,11 +174,13 @@ class ConsistentHash(object):
                 | b_key[entry_fn(0)])
 
     def _hash_digest(self, key):
+        key = key.encode() if sys.version_info[0] == 3 and isinstance(key, str) else key
+
         if self.hasher is not None:
-            res = map(ord, self.hasher(key))
+            res = [x if isinstance(x, int) else ord(x) for x in self.hasher(key)]
         else:
             m = hashlib.md5()
             m.update(key)
-            res = map(ord, m.digest())
+            res = [x if isinstance(x, int) else ord(x) for x in m.digest()]
 
         return res
