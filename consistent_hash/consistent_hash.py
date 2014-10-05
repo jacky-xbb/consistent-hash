@@ -22,17 +22,21 @@ class ConsistentHash(object):
     hasher = None
 
     def __init__(self, objects=None):
-        """`objects`, when you are running a cluster of Memcached servers
-        it could happen to not all server can allocate the same amount of memory.
-        You might have a Memcached server with 128mb, 512mb, 128mb. If you would the
-        array structure all servers would have the same weight in the consistent
-        hashing scheme. Spreading the keys 33/33/33 over the servers. But as server
-        2 has more memory available you might want to give it more weight so more keys
-        get stored on that server. When you are using a object, the key should represent
-        the server location syntax and the value the weight of the server.
+        """`objects`, when you are running a cluster of Memcached
+        servers it could happen to not all server can allocate the
+        same amount of memory. You might have a Memcached server
+        with 128mb, 512mb, 128mb. If you would the array structure
+        all servers would have the same weight in the consistent
+        hashing scheme. Spreading the keys 33/33/33 over the servers.
+        But as server 2 has more memory available you might want to
+        give it more weight so more keys get stored on that server.
+        When you are using a object, the key should represent the
+        server location syntax and the value the weight of the server.
 
         By default all servers have a weight of 1.
-        { '192.168.0.101:11212': 1, '192.168.0.102:11212': 2, '192.168.0.103:11212': 1 }
+        {'192.168.0.101:11212': 1,
+         '192.168.0.102:11212': 2,
+         '192.168.0.103:11212': 1}
         would generate a 25/50/25 distribution of the keys.
         """
         self.keys = []
@@ -56,7 +60,8 @@ class ConsistentHash(object):
             elif objects is None:
                 pass
             else:
-                raise TypeError("The arguments of nodes must be dict, list or string.")
+                raise TypeError("The arguments of nodes must be dict,\
+                        list or string.")
         except TypeError:
             traceback.print_exc(file=sys.stdout)
 
@@ -64,9 +69,9 @@ class ConsistentHash(object):
         """
         Adds nodes to the ring.
 
-        Nodes can be a list of nodes (assumed to be of weight 1), a dictionary keyed
-        by node name and valued by weight, or a string specifying a single node of
-        weight 1.
+        Nodes can be a list of nodes (assumed to be of weight 1),
+        a dictionary keyed by node name and valued by weight,
+        or a string specifying a single node of weight 1.
         """
         self._ingest_objects(nodes)
 
@@ -86,7 +91,8 @@ class ConsistentHash(object):
         """
         Deletes nodes from the ring.
 
-        Nodes is expected to be a list of nodes already present in the ring.
+        Nodes is expected to be a list of nodes already
+        present in the ring.
         """
         try:
             if not isinstance(nodes, list):
@@ -123,7 +129,8 @@ class ConsistentHash(object):
                 yield self._hash_val(b_key, lambda x: x + i * 4)
 
     def get_node(self, string_key):
-        """Given a string key a corresponding node in the hash ring is returned.
+        """Given a string key a corresponding node in the hash
+        ring is returned.
 
         If the hash ring is empty, `None` is returned.
         """
@@ -133,8 +140,8 @@ class ConsistentHash(object):
         return self.key_node[self.keys[pos]]
 
     def get_node_pos(self, string_key):
-        """Given a string key a corresponding node in the hash ring is returned
-        along with it's position in the ring.
+        """Given a string key a corresponding node in the hash
+        ring is returned along with it's position in the ring.
 
         If the hash ring is empty, (`None`, `None`) is returned.
         """
@@ -150,7 +157,8 @@ class ConsistentHash(object):
 
     def get_all_nodes(self):
         # Sorted with ascend
-        return sorted(self.nodes, key=lambda node: list(map(int, re.split('\W', node))))
+        return sorted(self.nodes,
+                      key=lambda node: list(map(int, re.split('\W', node))))
 
     def get_nodes_cnt(self):
         return len(self.nodes)
@@ -174,13 +182,16 @@ class ConsistentHash(object):
                 | b_key[entry_fn(0)])
 
     def _hash_digest(self, key):
-        key = key.encode() if sys.version_info[0] == 3 and isinstance(key, str) else key
+        key = key.encode() if sys.version_info[0] == 3 \
+            and isinstance(key, str) else key
 
         if self.hasher is not None:
-            res = [x if isinstance(x, int) else ord(x) for x in self.hasher(key)]
+            res = [x if isinstance(x, int) else ord(x)
+                   for x in self.hasher(key)]
         else:
             m = hashlib.md5()
             m.update(key)
-            res = [x if isinstance(x, int) else ord(x) for x in m.digest()]
+            res = [x if isinstance(x, int) else ord(x)
+                   for x in m.digest()]
 
         return res

@@ -58,7 +58,8 @@ class TestConsistentHash:
             node = self.con_hash.get_node(obj)
 
             if node is not None:
-                raise Exception("Should have received an exception when hashing using an empty LUT")
+                raise Exception("Should have received an exception \
+                                 when hashing using an empty LUT")
 
         self.con_hash.add_nodes(self.init_nodes)
 
@@ -127,15 +128,17 @@ class TestConsistentHash:
             substitutions = {
                 'nNodes': node,
                 'nObjs': self.hit_nums[node],
-                'percentage': self.get_percent(self.hit_nums[node], self.obj_nums)
+                'percentage': self.get_percent(self.hit_nums[node],
+                                               self.obj_nums)
             }
 
-            print('Nodes:{nNodes} - Objects count:{nObjs} - percent:{percentage}%'.format(**substitutions))
+            print('Nodes:{nNodes} \
+                   - Objects count:{nObjs} \
+                   - percent:{percentage}%'.format(**substitutions))
 
             distribution[node] = substitutions['percentage']
 
         return distribution
-
 
     def validate_distribution(self, actual, expected):
         if expected.keys() != actual.keys():
