@@ -8,6 +8,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
+
 def list_files(path):
     for fn in os.listdir(path):
         if fn.startswith('.'):
@@ -17,7 +18,7 @@ def list_files(path):
             yield fn
 
 setup(
-    name = 'consistent_hash',
+    name='consistent_hash',
     version='0.3',
     author="Yummy Bian",
     author_email="yummy.bian@gmail.com",
@@ -28,7 +29,3 @@ setup(
     keywords='consistent hash hashing',
     description="Implements consistent hashing with Python.",
 )
-
-
-
-
