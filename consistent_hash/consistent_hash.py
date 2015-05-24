@@ -125,7 +125,7 @@ class ConsistentHash(object):
 
         for j in xrange(0, int(factor)):
             b_key = self._hash_digest('%s-%s' % (node, j))
-            for i in xrange(0, 3):
+            for i in xrange(4):
                 yield self._hash_val(b_key, lambda x: x + i * 4)
 
     def get_node(self, string_key):
