@@ -1,16 +1,16 @@
 from __future__ import print_function
 
+import random
 import string
 import sys
+
+from consistent_hash.consistent_hash import ConsistentHash
 
 if sys.version_info[0] == 3:
     chars = string.ascii_letters + string.digits
 else:
     chars = string.letters + string.digits
 
-import random
-
-from consistent_hash.consistent_hash import ConsistentHash
 
 ConsistentHash.interleave_count = 1000
 

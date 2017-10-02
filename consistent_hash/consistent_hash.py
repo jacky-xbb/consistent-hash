@@ -176,10 +176,10 @@ class ConsistentHash(object):
         """Imagine keys from 0 to 2^32 mapping to a ring,
         so we divide 4 bytes of 16 bytes md5 into a group.
         """
-        return ((b_key[entry_fn(3)] << 24)
-                | (b_key[entry_fn(2)] << 16)
-                | (b_key[entry_fn(1)] << 8)
-                | b_key[entry_fn(0)])
+        return ((b_key[entry_fn(3)] << 24) |
+                (b_key[entry_fn(2)] << 16) |
+                (b_key[entry_fn(1)] << 8) |
+                b_key[entry_fn(0)])
 
     def _hash_digest(self, key):
         key = key.encode() if sys.version_info[0] == 3 \

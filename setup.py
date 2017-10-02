@@ -19,7 +19,7 @@ def list_files(path):
 
 setup(
     name='consistent_hash',
-    version='0.3',
+    version='1.0+eventbrite',
     author="Yummy Bian",
     author_email="yummy.bian@gmail.com",
     url="https://github.com/yummybian",
