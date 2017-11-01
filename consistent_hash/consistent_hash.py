@@ -12,9 +12,6 @@ import bisect
 import re
 import sys
 
-if sys.version_info[0] == 3:
-    xrange = range
-
 
 class ConsistentHash(object):
 
@@ -123,9 +120,9 @@ class ConsistentHash(object):
 
         factor = self.interleave_count * weight
 
-        for j in xrange(0, int(factor)):
+        for j in range(int(factor)):
             b_key = self._hash_digest('%s-%s' % (node, j))
-            for i in xrange(4):
+            for i in range(3):
                 yield self._hash_val(b_key, lambda x: x + i * 4)
 
     def get_node(self, string_key):
@@ -176,10 +173,10 @@ class ConsistentHash(object):
         """Imagine keys from 0 to 2^32 mapping to a ring,
         so we divide 4 bytes of 16 bytes md5 into a group.
         """
-        return ((b_key[entry_fn(3)] << 24)
-                | (b_key[entry_fn(2)] << 16)
-                | (b_key[entry_fn(1)] << 8)
-                | b_key[entry_fn(0)])
+        return ((b_key[entry_fn(3)] << 24) |
+                (b_key[entry_fn(2)] << 16) |
+                (b_key[entry_fn(1)] << 8) |
+                b_key[entry_fn(0)])
 
     def _hash_digest(self, key):
         key = key.encode() if sys.version_info[0] == 3 \
