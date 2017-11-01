@@ -164,3 +164,40 @@ class TestConsistentHash:
         for i in range(num):
             objs.append(''.join([random.choice(chars) for i in range(len)]))
         return objs
+
+    def test_sample_hash_output(self):
+        ConsistentHash.interleave_count = 40
+        # Test backward compatibility with version 1.0
+        samples = {
+            '35132097': 'B',
+            '25291004': 'D',
+            '48182416': 'F',
+            '45818378': 'H',
+            '52733021': 'A',
+            '94027025': 'I',
+            '18116713': 'F',
+            '75531098': 'J',
+            '99011825': 'F',
+            '99371754': 'A',
+            '19630740': 'D',
+            '87823770': 'G',
+            '32160063': 'A',
+            '28054420': 'E',
+            '75904283': 'H',
+            '08458048': 'E',
+            '51583844': 'I',
+            '16226754': 'B',
+            '95450503': 'E',
+            '47557476': 'C',
+            '38808589': 'A',
+        }
+
+        hash_ring = ConsistentHash(objects=['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'])
+        for input, output in samples.items():
+            result = hash_ring.get_node(input)
+            if result != output:
+                raise Exception('Expected node does not match actual node. Expected: {}. Got: {}'.format(
+                        output,
+                        result,
+                    )
+                )
